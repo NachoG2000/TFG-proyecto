@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
     })
 
     // Create a Supabase server client with custom cookie handling
-    const supabase = createServerClient(
+    const supabase = createServerClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {

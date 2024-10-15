@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button"
 import { PlusIcon, UserPlusIcon } from "lucide-react"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { User } from '@supabase/supabase-js'
+import { useRouter } from "next/navigation"
 
-export default function DashboardContent({ user }: { user: User }) {
+export default function DashboardContent() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -103,10 +103,12 @@ export default function DashboardContent({ user }: { user: User }) {
 }
 
 function ClassOptions() {
+  const router = useRouter()
+
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold mb-4">Elige una opción</h2>
-        <Button variant="outline" className="w-full justify-start text-left" onClick={() => console.log("Create new class")}>
+        <Button variant="outline" className="w-full justify-start text-left" onClick={() => router.push("/dashboard/new-course")}>
           <PlusIcon className="mr-2 h-4 w-4" />
           Crear nuevo curso
         </Button>

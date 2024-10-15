@@ -39,7 +39,7 @@ export default function Header() {
             <SidebarContent />
           </SheetContent>
         </Sheet>
-        <Link href="/">
+        <Link href="/dashboard">
             <h1 className="text-xl font-semibold">Classroom</h1>
         </Link>
       </div>

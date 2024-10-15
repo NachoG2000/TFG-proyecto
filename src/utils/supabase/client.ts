@@ -13,7 +13,7 @@ import { createBrowserClient } from '@supabase/ssr'
 export function createClient() {
   // Create and return a Supabase browser client
   // The '!' is used to assert that these environment variables are defined
-  return createBrowserClient(
+  return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );

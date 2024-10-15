@@ -9,7 +9,7 @@ import Link from 'next/link'
 export default function Sidebar() {
   return (
     <nav className="space-y-2">
-      <Link href="/">
+      <Link href="/dashboard">
         <Button variant="ghost" className="w-full justify-start">
           <HomeIcon className="mr-2 h-4 w-4" />
           Cursos

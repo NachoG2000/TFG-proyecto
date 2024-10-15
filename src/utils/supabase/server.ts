@@ -11,7 +11,7 @@ export function createClient() {
     const cookieStore = cookies()
 
     // Create and return a Supabase server client with custom cookie handling
-    return createServerClient(
+    return createServerClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
