@@ -10,8 +10,49 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 
-export default function DashboardContent() {
+type UserCourse = {
+  id: string;
+  name: string | null;
+  description: string | null;
+  created_at: string | null;
+  created_by: string | null;
+  educational_level: string | null;
+  objective: string | null;
+  unique_code: string | null;
+  role: string | null;
+};
+
+export default function DashboardContent({ userCourses } : { userCourses: UserCourse[] }) {
   const [isMobile, setIsMobile] = useState(false)
+
+  const studentCourses = userCourses.filter(course => course.role === 'student')
+  const professorCourses = userCourses.filter(course => course.role === 'professor')
+
+  const studentCourseComponents = studentCourses.map(course => (
+    <Link href={`/course/${course.id}`} key={course.id}>
+      <Card className="w-full max-w-md bg-pink-600 text-white">
+        <CardHeader>
+          <CardTitle>{course.name}</CardTitle>
+          <CardDescription className="text-pink-100">{course.created_at}</CardDescription>
+          <CardDescription className="text-pink-100">{course.created_by}</CardDescription>
+          <CardDescription className="text-pink-100">{course.description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
+  ))
+
+  const professorCourseComponents = professorCourses.map(course => (
+    <Link href={`/course/${course.id}`} key={course.id}>
+      <Card className="w-full max-w-md bg-blue-600 text-white">
+        <CardHeader>
+          <CardTitle>{course.name}</CardTitle>
+          <CardDescription className="text-blue-100">{course.created_at}</CardDescription>
+          <CardDescription className="text-blue-100">{course.created_by}</CardDescription>
+          <CardDescription className="text-blue-100">{course.description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
+  ))
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -27,43 +68,12 @@ export default function DashboardContent() {
           <div>
             <h2 className="text-lg font-semibold mb-4">Cursos en los que te inscribiste</h2>
             <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
-              <Link href="/c" className="block">
-                <Card className="w-full max-w-md bg-pink-600 text-white">
-                  <CardHeader>
-                    <CardTitle>Introducción a la Matemática</CardTitle>
-                    <CardDescription className="text-pink-100">2024</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>María Fernández</p>
-                  </CardContent>
-                </Card>
-              </Link>
-              <Link href="/c" className="block">
-                <Card className="w-full max-w-md bg-green-600 text-white">
-                  <CardHeader>
-                    <CardTitle>Introducción a la Química</CardTitle>
-                    <CardDescription className="text-pink-100">2023</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Javier López</p>
-                  </CardContent>
-                </Card>
-              </Link>
+              {studentCourseComponents}
             </div>
             <div>
               <h2 className="text-lg font-semibold mb-4 mt-8">Cursos en los que eres profesor</h2>
               <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
-              <Link href="/p" className="block">
-                <Card className="w-full max-w-md bg-blue-600 text-white">
-                  <CardHeader>
-                    <CardTitle>Introducción a la Historia</CardTitle>
-                    <CardDescription className="text-pink-100">2024</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>Ignacio Garcia</p>
-                  </CardContent>
-                </Card>
-              </Link>
+              {professorCourseComponents}
               </div>
             </div>
           </div>
@@ -108,11 +118,11 @@ function ClassOptions() {
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold mb-4">Elige una opción</h2>
-        <Button variant="outline" className="w-full justify-start text-left" onClick={() => router.push("/dashboard/new-course")}>
+        <Button variant="outline" className="w-full justify-start text-left" onClick={() => router.push("/dashboard/create-course")}>
           <PlusIcon className="mr-2 h-4 w-4" />
           Crear nuevo curso
         </Button>
-        <Button variant="outline" className="w-full justify-start text-left" onClick={() => console.log("Join class")}>
+        <Button variant="outline" className="w-full justify-start text-left" onClick={() => router.push("/dashboard/enroll")}>
           <UserPlusIcon className="mr-2 h-4 w-4" />
           Unirse a curso existente
         </Button>

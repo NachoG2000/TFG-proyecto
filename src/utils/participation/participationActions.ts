@@ -10,6 +10,7 @@ export async function createProfessorParticipation(courseId: string, professorId
         course_id: courseId,
         user_id: professorId,
         role: 'professor',
+        has_completed_diagnostic: true,
       },
     ])
 
@@ -18,4 +19,38 @@ export async function createProfessorParticipation(courseId: string, professorId
   }
 
   return professorParticipation;
+}
+
+export async function createStudentParticipation(courseId: string, studentId: string) {
+  const supabase = createClient();
+
+  // Check if participation already exists
+  const { data: existingParticipation, error: checkError } = await supabase
+    .from('participations')
+    .select('*')
+    .eq('course_id', courseId)
+    .eq('user_id', studentId)
+    .single();
+
+  if (existingParticipation) {
+    throw new Error('You are already enrolled in this course');
+  }
+
+  const { data: studentParticipation, error: studentParticipationError } = await supabase
+    .from('participations')
+    .insert([
+      {
+        course_id: courseId,
+        user_id: studentId,
+        role: 'student',
+      },
+    ])
+    .select()
+    .single();
+
+  if (studentParticipationError) {
+    throw new Error(studentParticipationError.message);
+  }
+
+  return studentParticipation;
 }

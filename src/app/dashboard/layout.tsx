@@ -13,7 +13,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   if (!user) {
     redirect('/login')
   }
-
+  
   return (
       <div className="flex flex-col h-screen bg-background text-foreground">
         <Header />

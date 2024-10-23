@@ -14,20 +14,6 @@ export default async function Layout({ children }: { children: React.ReactNode }
       redirect('/login')
     }
 
-    // if (user) {
-    //     // console.log(user.id)
-    //     const { data, error } = await supabase
-    //     .from('participations')
-    //     .select('*')
-    //     .eq('user_id', user.id)
-    //     .single();  
-    // if (error) {
-    //   console.error('Error fetching course:', error);
-    // } else {
-    //     // console.log('Course data:', data);
-    //   }
-    // }
-
   return (
       <div className="flex flex-col h-screen bg-background text-foreground">
         <Header />

@@ -7,8 +7,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { createCourse } from '@/utils/course/courseActions'
-// import { createCourse } from '@/app/course/course-actions'
 import { useRouter } from 'next/navigation'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Trash2 } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 
 interface Option {
   id: number;
@@ -22,7 +25,7 @@ interface Question {
   correctOptionId: number | null;
 }
 
-export default function NewCourse() {
+export default function CreateCoursePage() {
   const router = useRouter()
   const [courseName, setCourseName] = useState('')
   const [description, setDescription] = useState('')
@@ -81,29 +84,38 @@ export default function NewCourse() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // TODO: Agregar las preguntas
+    e.preventDefault();
+  
+    // Transformar las preguntas al formato JSON esperado
+    const diagnosticQuestions = {
+      questions: questions.map((q) => ({
+        question: q.text,
+        options: q.options.map((o) => ({
+          answer: o.text,
+          isCorrect: o.id === q.correctOptionId,
+        })),
+      })),
+    };
+  
     const courseData = {
       name: courseName,
       description,
       educational_level: educationLevel,
       objective: objectives,
-    }
-
+      diagnostic_questions: diagnosticQuestions,
+    };
+  
     try {
-      const { course } = await createCourse(courseData)
-      // TODO: Insert associated questions if any
-
+      const { course } = await createCourse(courseData);
       // Redirect to the course page if there was no error
       if (course && course.id) {
-        router.push(`/course/${course.id}`)
+        router.push(`/course/${course.id}`);
       }
     } catch (error) {
-      console.error('Error creating course:', error)
+      console.error('Error creating course:', error);
       // Handle the error (e.g., show an error message to the user)
     }
-  }
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -153,14 +165,14 @@ export default function NewCourse() {
           />
         </div>
 
-        {/* <Card>
+        <Card>
           <CardHeader>
             <CardTitle>Preguntas Iniciales (Opción Múltiple)</CardTitle>
           </CardHeader>
           <CardContent>
             {questions.map((question, qIndex) => (
               <div key={question.id} className="mb-6 p-4 border rounded">
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-4">
                   <Input
                     value={question.text}
                     onChange={(e) => handleQuestionChange(question.id, e.target.value)}
@@ -191,7 +203,7 @@ export default function NewCourse() {
                       {question.options.length > 2 && (
                         <Button
                           type="button"
-                          variant="destructive"
+                          variant="outline"
                           size="icon"
                           onClick={() => handleRemoveOption(question.id, option.id)}
                         >
@@ -212,7 +224,7 @@ export default function NewCourse() {
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Pregunta
             </Button>
           </CardContent>
-        </Card> */}
+        </Card>
 
         <Button type="submit" className="w-full">Crear Curso</Button>
       </form>

@@ -6,30 +6,53 @@ import { Input } from "@/components/ui/input";
 import { MoreVerticalIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import DiagnosticTest from "./DiagnosticTest";
 
 export default async function CoursePage({params} : {params: {id: string}}) {
-    const supabase = createClient()
+    const supabase = createClient();
 
-    const { data: { user } } = await supabase.auth.getUser()
-    const userId = user?.id
+    // Obtener el usuario actual
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
   
     if (!userId) {
-      // Handle the case where there's no authenticated user
-      return notFound()
+      // Manejar el caso donde no hay usuario autenticado
+      return notFound();
     }
-    
-    // Fetch the course data directly
-    const { data: course, error } = await supabase
+  
+    // Obtener la participación del alumno en el curso
+    const { data: participation, error: participationError } = await supabase
+      .from('participations')
+      .select('has_completed_diagnostic')
+      .eq('course_id', params.id)
+      .eq('user_id', userId)
+      .single();
+  
+    if (participationError || !participation) {
+      console.error('Participación no encontrada o error:', participationError?.message);
+      return notFound();
+    }
+  
+    // Verificar si el alumno ha completado el test de diagnóstico
+    if (!participation.has_completed_diagnostic) {
+      // Mostrar el componente del test de diagnóstico
+      return (
+        <DiagnosticTest courseId={params.id} />
+      );
+    }
+  
+    // Obtener los datos del curso
+    const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('*')
       .eq('id', params.id)
-      .single()
-
-    if (error || !course) {
-        console.log('Course not found or error:', error?.message);
-        return notFound()
+      .single();
+  
+    if (courseError || !course) {
+      console.log('Curso no encontrado o error:', courseError?.message);
+      return notFound();
     }
-    
+
     return (
         <div>
             <div className="flex-1 overflow-auto">
@@ -39,7 +62,7 @@ export default async function CoursePage({params} : {params: {id: string}}) {
                         <Card className="w-full bg-pink-600 text-white overflow-hidden">
                             <CardHeader className="relative pb-0">
                                 <CardTitle className="text-2xl">{course.name}</CardTitle>
-                                <CardDescription className="text-pink-100">2024</CardDescription>
+                                <CardDescription className="text-pink-100">Código único: {course.unique_code}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <p>{course.description}</p>

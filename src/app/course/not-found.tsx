@@ -26,7 +26,7 @@ export default function NotFound({
         <p className="text-gray-600 mb-6">La página que estás buscando no existe o ha sido movida.</p>
         <div className="flex space-x-4">
           <Button 
-            onClick={() => reset()} 
+            onClick={() => router.refresh()} 
           >
             Intentar de nuevo
           </Button>
