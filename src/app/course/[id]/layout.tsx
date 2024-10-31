@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import CourseNavigation from "./CourseNavigation";
 import { createClient } from "@/utils/supabase/server";
+import DiagnosticTest from "./DiagnosticTest";
 
 export default async function CourseLayout({children, params} : {children: React.ReactNode, params: {id: string}}) {
   const supabase = createClient();
@@ -12,20 +13,28 @@ export default async function CourseLayout({children, params} : {children: React
     return notFound();
   }
 
-  // Obtener la participación del usuario en el curso
+  // Get user's participation and diagnostic activity status
   const { data: participation, error: participationError } = await supabase
     .from('participations')
-    .select('has_completed_diagnostic')
+    .select(`
+      *,
+      activities:activities(
+        id,
+        module:modules(
+          is_diagnostic
+        )
+      )
+    `)
     .eq('course_id', params.id)
     .eq('user_id', userId)
     .single();
 
   if (participationError || !participation) {
-    console.error('Participación no encontrada o error:', participationError?.message);
+    console.error('Participación no encontrada o error (en layout.tsx):', participationError?.message);
     return notFound();
   }
 
-  // Obtener el curso
+  // Get course
   const { data: course } = await supabase
     .from('courses')
     .select('*')
@@ -36,11 +45,18 @@ export default async function CourseLayout({children, params} : {children: React
     return notFound();
   }
 
+  const hasDiagnosticActivity = participation.activities?.some(
+    activity => activity.module?.is_diagnostic
+  );
+
   return (
     <div className="bg-background">
-      {/* Renderizar condicionalmente CourseNavigation */}
       {participation.has_completed_diagnostic && <CourseNavigation courseId={params.id} />}
-      {children}
+      {!participation.has_completed_diagnostic && hasDiagnosticActivity ? (
+        <DiagnosticTest courseId={params.id} />
+      ) : (
+        children
+      )}
     </div>
   );
 }

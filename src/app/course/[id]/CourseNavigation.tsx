@@ -16,8 +16,8 @@ export default function CourseNavigation({ courseId }: { courseId: string }) {
         <span className="text-xs">Novedades</span>
         </Button>
       </Link>
-      <Link href={`/course/${courseId}/modulos`}>
-        <Button variant="ghost" className={`flex-col items-center h-max ${pathname === `/course/${courseId}/modulos` ? "bg-primary/5" : ""}`}>
+      <Link href={`/course/${courseId}/modules`}>
+        <Button variant="ghost" className={`flex-col items-center h-max ${pathname === `/course/${courseId}/modules` ? "bg-primary/5" : ""}`}>
           <ClipboardIcon className="h-3 w-3" />
           <span className="text-xs">Modulos</span>
         </Button>

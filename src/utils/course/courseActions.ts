@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client';
 import { createProfessorParticipation, createStudentParticipation } from '@/utils/participation/participationActions';
+import { createDiagnosticModule } from '@/utils/module/moduleActions';
 import { Json } from '../../../database.types';
 
 type CourseProps = {
@@ -25,11 +26,6 @@ export async function createCourse(courseDataProps: CourseProps) {
     throw new Error('No se pudo obtener el ID del profesor');
   }
 
-  const createCourseUniqueCode = () => {
-    return Math.random().toString(36).substring(2, 15);
-  };
-
-  // Insert the new course into the 'courses' table, including diagnostic_questions
   const { data: courseData, error: courseError } = await supabase
     .from('courses')
     .insert([
@@ -43,26 +39,27 @@ export async function createCourse(courseDataProps: CourseProps) {
         diagnostic_questions: courseDataProps.diagnostic_questions,
       },
     ])
-    .select();
+    .select()
+    .single();
 
-  if (courseError) {
+  if (courseError || !courseData) {
     console.error('Error inserting course:', courseError);
-    throw new Error(courseError.message);
+    throw new Error(courseError?.message || 'Error creating course');
   }
 
-  if (!courseData || courseData.length === 0) {
-    throw new Error('No course data returned after insertion');
-  }
-
-  // Create the professor participation
   try {
-    const professorParticipation = await createProfessorParticipation(courseData[0].id, professorId);
-    return { course: courseData[0], professorParticipation };
+    const professorParticipation = await createProfessorParticipation(courseData.id, professorId);
+    const diagnosticModule = await createDiagnosticModule(courseData.id, professorId);
+    return { course: courseData, diagnosticModule, professorParticipation };
   } catch (error) {
-    console.error('Error creating professor participation:', error);
+    console.error('Error in course creation process:', error);
     throw error;
   }
 }
+
+const createCourseUniqueCode = () => {
+  return Math.random().toString(36).substring(2, 15);
+};
 
 export async function checkEnrollmentCode(enrollmentCode: string) {
   const supabase = createClient();

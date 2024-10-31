@@ -87,7 +87,7 @@ export default function CreateCoursePage() {
     e.preventDefault();
   
     // Transformar las preguntas al formato JSON esperado
-    const diagnosticQuestions = {
+    const diagnosticQuestionsJson = {
       questions: questions.map((q) => ({
         question: q.text,
         options: q.options.map((o) => ({
@@ -102,7 +102,7 @@ export default function CreateCoursePage() {
       description,
       educational_level: educationLevel,
       objective: objectives,
-      diagnostic_questions: diagnosticQuestions,
+      diagnostic_questions: diagnosticQuestionsJson,
     };
   
     try {

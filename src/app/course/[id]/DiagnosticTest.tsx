@@ -25,7 +25,7 @@ export default function DiagnosticTest({ courseId }: { courseId: string }) {
         .from('courses')
         .select('diagnostic_questions')
         .eq('id', courseId)
-        .single();
+        .single(); // HABRIA QUE USAR LAS PREGUNTAS DE LAS ACTIVIDADES, NO LAS DE LOS CURSOS
 
       if (error || !course) {
         console.error('Error al obtener las preguntas:', error);

@@ -20,7 +20,7 @@ export default function EnrollPage() {
     setIsLoading(true)
     try {
       const { courseId, studentParticipation } = await checkEnrollmentCode(enrollmentCode);
-      console.log({ courseId, studentParticipation })
+      console.log("enroll page.tsx", { courseId, studentParticipation })
       // Redirect to the course page or show a success message
       router.push(`/course/${courseId}`)
     } catch (error) {

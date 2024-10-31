@@ -29,7 +29,7 @@ export default async function CoursePage({params} : {params: {id: string}}) {
       .single();
   
     if (participationError || !participation) {
-      console.error('Participación no encontrada o error:', participationError?.message);
+      console.error('Participación no encontrada o error (en page.tsx):', participationError?.message);
       return notFound();
     }
   
@@ -59,7 +59,7 @@ export default async function CoursePage({params} : {params: {id: string}}) {
                 <ScrollArea className="h-full">
                     <div className="p-4 space-y-4">
 
-                        <Card className="w-full bg-pink-600 text-white overflow-hidden">
+                        <Card className="w-full bg-black text-white overflow-hidden">
                             <CardHeader className="relative pb-0">
                                 <CardTitle className="text-2xl">{course.name}</CardTitle>
                                 <CardDescription className="text-pink-100">Código único: {course.unique_code}</CardDescription>
