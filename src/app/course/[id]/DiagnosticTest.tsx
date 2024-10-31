@@ -8,6 +8,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { createDiagnosticPerformance } from '@/utils/performance/performanceActions';
+
+type Option = {
+  answer: string;
+  isCorrect: boolean;
+};
+
+type Question = {
+  question: string;
+  options: Option[];
+};
+
+type ActivityQuestions = {
+  questions: Question[];
+};
+
+type Activity = {
+  id: string;
+  questions: ActivityQuestions;
+};
 
 export default function DiagnosticTest({ courseId }: { courseId: string }) {
   const supabase = createClient();
@@ -18,24 +38,66 @@ export default function DiagnosticTest({ courseId }: { courseId: string }) {
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userAnswers, setUserAnswers] = useState<any[]>([]);
+  const [participationId, setParticipationId] = useState<string>('');
+  const [activityId, setActivityId] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const { data: course, error } = await supabase
-        .from('courses')
-        .select('diagnostic_questions')
-        .eq('id', courseId)
-        .single(); // HABRIA QUE USAR LAS PREGUNTAS DE LAS ACTIVIDADES, NO LAS DE LOS CURSOS
+      setLoading(true);
 
-      if (error || !course) {
-        console.error('Error al obtener las preguntas:', error);
+      // Obtener el usuario actual
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error('Error al obtener el usuario:', userError);
+        setErrorMessage('No se pudo obtener el usuario.');
         return;
       }
-      if (course.diagnostic_questions) {
-        setQuestions((course.diagnostic_questions as { questions: any[] }).questions || []);
+
+      // Obtener la participación del usuario en el curso
+      const { data: participation, error: participationError } = await supabase
+        .from('participations')
+        .select('id')
+        .eq('course_id', courseId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (participationError || !participation) {
+        console.error('Error al obtener la participación:', participationError);
+        setErrorMessage('No se pudo obtener la participación.');
+        return;
+      }
+
+      setParticipationId(participation.id);
+
+      // Obtener la actividad de diagnóstico asociada a la participación
+      const { data: activityData, error: activityError } = await supabase
+      .from('activities')
+      .select('id, questions')
+      .eq('participation_id', participation.id)
+      .eq('name', 'Evaluación Diagnóstica')
+      .single();
+    
+    if (activityError || !activityData) {
+      console.error('Error al obtener la actividad:', activityError);
+      setErrorMessage('No se pudo obtener la actividad de diagnóstico.');
+        return;
+      }
+
+      // Cast activityData to Activity type
+      const activity = activityData as Activity;
+
+      setActivityId(activity.id);
+
+      // Establecer las preguntas
+      if (activity.questions) {
+        setQuestions(activity.questions.questions || []);
       } else {
         setQuestions([]);
       }
+
       setLoading(false);
     };
 
@@ -47,9 +109,25 @@ export default function DiagnosticTest({ courseId }: { courseId: string }) {
   };
 
   const handleNextQuestion = async () => {
-    const correctOption = questions[currentQuestion].options.find((option: any) => option.isCorrect);
+    // Guardar la respuesta del usuario
+    const selectedOptionIndex = questions[currentQuestion].options.findIndex(
+      (option: any) => option.answer === selectedAnswer
+    );
 
-    if (selectedAnswer === correctOption.answer) {
+    setUserAnswers([
+      ...userAnswers,
+      {
+        questionIndex: currentQuestion,
+        selectedOptionIndex,
+      },
+    ]);
+
+    // Calcular el puntaje
+    const correctOptionIndex = questions[currentQuestion].options.findIndex(
+      (option: any) => option.isCorrect
+    );
+
+    if (selectedOptionIndex === correctOptionIndex) {
       setScore(score + 1);
     }
 
@@ -63,22 +141,42 @@ export default function DiagnosticTest({ courseId }: { courseId: string }) {
     }
   };
 
-  const handleQuizCompletion = async () => {
-    // Actualizar la participación con has_completed_diagnostic = true
-    const { error } = await supabase
-      .from('participations')
-      .update({ has_completed_diagnostic: true })
-      .eq('course_id', courseId)
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
+  const handleQuizCompletion = async () => { // TODO: REFACTORIZAR PARA QUE TODO SE HAGA EN PERFORMANCE ACTIONS
+    // Guardar las respuestas en la tabla 'performances'
+    const { error: insertError } = await supabase
+      .from('performances')
+      .insert({
+        participation_id: participationId,
+        activity_id: activityId,
+        responses: { responses: userAnswers },
+      });
 
-    if (error) {
-      console.error('Error al actualizar la participación:', error);
+    if (insertError) {
+      console.error('Error al guardar las respuestas:', insertError);
       return;
     }
+
+    // Generar la performance
+    try {
+      await createDiagnosticPerformance(participationId, activityId);
+    } catch (error) {
+      console.error('Error al generar la performance:', error);
+    }
+
+    // Redirigir o actualizar la interfaz
+    router.refresh();
   };
 
   if (loading) {
     return <div>Cargando el test de diagnóstico...</div>;
+  }
+
+  if (errorMessage) {
+    return <div>Error: {errorMessage}</div>;
+  }
+
+  if (questions.length === 0) {
+    return <div>No hay preguntas disponibles para este diagnóstico.</div>;
   }
 
   return (
