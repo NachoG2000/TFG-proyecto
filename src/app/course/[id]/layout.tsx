@@ -51,7 +51,7 @@ export default async function CourseLayout({children, params} : {children: React
 
   return (
     <div className="bg-background">
-      {participation.has_completed_diagnostic && <CourseNavigation courseId={params.id} />}
+      {participation.has_completed_diagnostic && <CourseNavigation courseId={params.id} participationId={participation.id} role={participation?.role || ''} />}
       {!participation.has_completed_diagnostic && hasDiagnosticActivity ? (
         <DiagnosticTest courseId={params.id} />
       ) : (

@@ -42,3 +42,54 @@ export async function getDiagnosticModule(courseId: string) {
 
   return moduleData;
 }
+
+export async function createModule(courseId: string, professorId: string, data: { title: string, description: string, document?: File }) {
+  const supabase = createClient();
+  
+  // First create the module record
+  const { data: moduleData, error: moduleError } = await supabase
+    .from('modules')
+    .insert([
+      {
+        course_id: courseId,
+        created_by: professorId,
+        title: data.title,
+        description: data.description,
+        is_diagnostic: false,
+      },
+    ])
+    .select()
+    .single();
+
+  if (moduleError || !moduleData) {
+    throw new Error('Failed to create module');
+  }
+
+  // If there's a document, upload it to storage
+  if (data.document) {
+    const fileExt = data.document.name.split('.').pop();
+    const fileName = `${moduleData.id}-${Date.now()}.${fileExt}`;
+    const filePath = `modules/${courseId}/${fileName}`;
+
+    const { error: uploadError } = await supabase
+      .storage
+      .from('module-documents')
+      .upload(filePath, data.document);
+
+    if (uploadError) {
+      throw new Error('Failed to upload document: ' + JSON.stringify(uploadError));
+    }
+
+    // Update module with document path
+    const { error: updateError } = await supabase
+      .from('modules')
+      .update({ document_url: filePath })
+      .eq('id', moduleData.id);
+
+    if (updateError) {
+      throw new Error('Failed to update module with document');
+    }
+  }
+
+  return moduleData;
+}

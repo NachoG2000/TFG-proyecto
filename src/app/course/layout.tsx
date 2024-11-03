@@ -14,9 +14,11 @@ export default async function Layout({ children }: { children: React.ReactNode }
       redirect('/login')
     }
 
+  const {data: userData} = await supabase.from('users').select('*').eq('id', user.id).single()
+
   return (
       <div className="flex flex-col h-screen bg-background text-foreground">
-        <Header />
+        <Header user={userData}/>
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar for larger screens */}

@@ -12,7 +12,14 @@ import { useRouter } from 'next/navigation'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-export default function Header() {
+type userData = {
+  avatar_url: string | null;
+  email: string | null;
+  id: string;
+  name: string | null;
+} | null
+
+export default function Header({user}: {user: userData}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
 
@@ -46,8 +53,8 @@ export default function Header() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="cursor-pointer">
-            <AvatarImage src={""} />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={user?.avatar_url || ''} />
+            <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

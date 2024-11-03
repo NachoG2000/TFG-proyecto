@@ -1,11 +1,11 @@
 'use client'
 
-import { ClipboardIcon, MessageSquareIcon, UsersIcon } from "lucide-react";
+import { BarChartIcon, ClipboardIcon, MessageSquareIcon, UserIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function CourseNavigation({ courseId }: { courseId: string }) {
+export default function CourseNavigation({ courseId, participationId, role }: { courseId: string, participationId: string, role: string }) {
   const pathname = usePathname();
 
   return (
@@ -28,6 +28,21 @@ export default function CourseNavigation({ courseId }: { courseId: string }) {
           <span className="text-xs">Chatbot</span>
         </Button>
       </Link>
+      {role === 'student' ? (
+        <Link href={`/course/${courseId}/profile/${participationId}`}>
+          <Button variant="ghost" className={`flex-col items-center h-max ${pathname === `/course/${courseId}/profile/${participationId}` ? "bg-primary/5" : ""}`}>
+            <UserIcon className="h-3 w-3" />
+            <span className="text-xs">Perfil</span>
+          </Button>
+        </Link>
+      ) : (
+        <Link href={`/course/${courseId}/performances`}>
+          <Button variant="ghost" className={`flex-col items-center h-max ${pathname === `/course/${courseId}/performances` ? "bg-primary/5" : ""}`}>
+            <BarChartIcon className="h-3 w-3" />
+            <span className="text-xs">Desempeño</span>
+          </Button>
+        </Link>
+      )}
     </nav>
   )
 }
