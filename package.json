@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "@langchain/community": "^0.3.11",
     "@langchain/openai": "^0.3.11",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -29,7 +30,9 @@
     "clsx": "^2.1.1",
     "langchain": "^0.3.5",
     "lucide-react": "^0.452.0",
+    "mammoth": "^1.8.0",
     "next": "14.2.15",
+    "pdf-parse": "^1.1.1",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.53.1",
@@ -41,6 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

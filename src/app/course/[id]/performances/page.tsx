@@ -70,7 +70,7 @@ export default async function GradesSection({ params }: { params: { id: string }
                                     {modules?.map((module) => (
                                         <TableHead key={module.id} className="min-w-[150px]">
                                             <div className="text-black font-medium">{module.title}</div>
-                                            <div className="text-sm text-muted-foreground">{module.description}</div>
+
                                         </TableHead>
                                     ))}
                                 </TableRow>

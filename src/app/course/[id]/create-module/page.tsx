@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { createModule } from "@/utils/module/moduleActions";
+import { createModule } from '@/utils/module/moduleActions';
 import { createClient } from "@/utils/supabase/client";
 import { useParams } from "next/navigation"; // Corregir la importación
 
@@ -39,11 +40,11 @@ const moduleFormSchema = z.object({
   document: z
     .any()
     .refine(
-      (file) => file?.size <= MAX_FILE_SIZE,
+      (file) => !file || file?.size <= MAX_FILE_SIZE,
       `El tamaño máximo del archivo es 5MB.`
     )
     .refine(
-      (file) => ACCEPTED_FILE_TYPES.includes(file?.type),
+      (file) => !file || ACCEPTED_FILE_TYPES.includes(file?.type),
       "Solo se aceptan archivos PDF o Word."
     )
     .optional(),
@@ -61,17 +62,18 @@ export default function CreateModuleForm() {
   const params = useParams();
   const courseId = params.id as string;
   const supabase = createClient();
+  const router = useRouter();
 
   const form = useForm<ModuleFormValues>({
     resolver: zodResolver(moduleFormSchema),
     defaultValues,
+    mode: 'onChange', // Validación en tiempo real
   });
 
   const { isSubmitting } = form.formState;
 
-  async function onSubmit(formData: ModuleFormValues) {
+  async function onSubmit(values: ModuleFormValues) {
     try {
-      // Obtener el usuario autenticado
       const {
         data: { user },
         error: userError,
@@ -81,13 +83,21 @@ export default function CreateModuleForm() {
         throw new Error("No se pudo obtener el usuario autenticado");
       }
 
-      const professorId = user.id;
+      // Crear FormData con todos los datos necesarios
+      const formData = new FormData();
+      formData.append('title', values.title);
+      formData.append('description', values.description);
+      formData.append('courseId', courseId);
+      formData.append('professorId', user.id);
+      if (values.document) {
+        formData.append('document', values.document);
+      }
 
-      // Llamar a createModule
-      await createModule(courseId, professorId, {
-        title: formData.title,
-        description: formData.description,
-        document: formData.document,
+      // La Server Action se encarga de todo el proceso, incluyendo los embeddings
+      const moduleData = await createModule(courseId, user.id, {
+        title: values.title,
+        description: values.description,
+        document: values.document
       });
 
       toast({
@@ -95,23 +105,22 @@ export default function CreateModuleForm() {
         description: "El módulo ha sido creado exitosamente.",
       });
 
-      // Redirect to modules page after successful creation
-      window.location.href = `http://localhost:3000/course/${courseId}/modules`;
-
+      router.push(`/course/${courseId}/modules`);
     } catch (error) {
-      console.error("Error al crear el módulo:", error);
+      console.error("Error detallado al crear el módulo:", error);
       toast({
         title: "Error",
-        description:
-          "Hubo un error al crear el módulo. Por favor intente nuevamente.",
+        description: error instanceof Error 
+          ? error.message 
+          : "Hubo un error al crear el módulo. Por favor intente nuevamente.",
         variant: "destructive",
       });
     }
   }
 
   return (
-    <div className="mx-auto p-6">
-      <div className="space-y-4 bg-black p-6 rounded-lg text-white">
+    <div className="max-w-2xl mx-auto p-6">
+      <div className="space-y-4">
         <h1 className="text-2xl font-bold">Crear Nuevo Módulo</h1>
         <p className="text-muted-foreground">
           Complete los siguientes campos para crear un nuevo módulo.
